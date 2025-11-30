@@ -1,10 +1,15 @@
+@import "leaflet/dist/leaflet.css";
+
+/* Import Tailwind */
 @import "tailwindcss";
 
+/* Light Theme Variables */
 :root {
   --background: #ffffff;
   --foreground: #171717;
 }
 
+/* Tailwind Theme Extension */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -12,6 +17,7 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Dark Theme Support */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -19,8 +25,34 @@
   }
 }
 
+/* Global Body Styles */
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* ========= CUSTOM UI COMPONENTS ========= */
+
+/* Input Field Design */
+.input {
+  @apply w-full p-3 border border-gray-300 rounded-lg mb-3 bg-white text-black;
+}
+
+/* Dark mode fix for inputs */
+@media (prefers-color-scheme: dark) {
+  .input {
+    @apply bg-neutral-900 text-white border-neutral-700;
+  }
+}
+
+/* Buttons */
+.btn {
+  @apply px-5 py-3 bg-black text-white font-semibold rounded-lg cursor-pointer transition;
+}
+
+.btn:hover {
+  @apply opacity-80;
 }
