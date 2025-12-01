@@ -7,36 +7,40 @@ export default function GoogleCallback() {
   const router = useRouter();
 
   useEffect(() => {
-    async function processLogin() {
-      try {
-        const url = new URL(window.location.href);
-        const token = url.searchParams.get("token");
+    async function handleCallback() {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("code");
 
-        if (!token) {
-          alert("Login failed. No token received.");
-          router.replace("/login");
-          return;
-        }
+      if (!code) {
+        router.push("/login");
+        return;
+      }
 
-        // Save token for authenticated pages
-        localStorage.setItem("auth_token", token);
+      // Backend URL
+      const BACKEND = process.env.NEXT_PUBLIC_API_BASE_URL || "https://ai-valuation-backend-1.onrender.com";
 
-        // Redirect to dashboard
-        router.replace("/dashboard/house-price");
-      } catch (err) {
-        console.error(err);
-        router.replace("/login");
+      // Call backend callback
+      const res = await fetch(`${BACKEND}/auth/google/callback?code=${code}`);
+
+      const data = await res.json();
+
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+
+        // 🚀 FIX: Redirect to HOME instead of Dashboard
+        router.push("/");
+      } else {
+        router.push("/login");
       }
     }
 
-    processLogin();
+    handleCallback();
   }, [router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center text-white">
-      <div className="text-center">
-        <div className="text-lg">Signing you in...</div>
-      </div>
+      <p>Finishing login...</p>
     </div>
   );
 }
