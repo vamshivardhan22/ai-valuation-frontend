@@ -7,40 +7,49 @@ export default function GoogleCallback() {
   const router = useRouter();
 
   useEffect(() => {
-    async function handleCallback() {
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get("code");
+    async function finishLogin() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get("token");
 
-      if (!code) {
+      // If no token, send back to login
+      if (!token) {
         router.push("/login");
         return;
       }
 
-      // Backend URL
-      const BACKEND = process.env.NEXT_PUBLIC_API_BASE_URL || "https://ai-valuation-backend-1.onrender.com";
+      // Store JWT
+      localStorage.setItem("token", token);
 
-      // Call backend callback
-      const res = await fetch(`${BACKEND}/auth/google/callback?code=${code}`);
+      // OPTIONAL: fetch user profile
+      try {
+        const API =
+          process.env.NEXT_PUBLIC_BACKEND_URL ||
+          "https://ai-valuation-backend-1.onrender.com";
 
-      const data = await res.json();
+        const res = await fetch(`${API}/auth/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-      if (data.token) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-
-        // 🚀 FIX: Redirect to HOME instead of Dashboard
-        router.push("/");
-      } else {
-        router.push("/login");
+        if (res.ok) {
+          const user = await res.json();
+          localStorage.setItem("user", JSON.stringify(user));
+        }
+      } catch (err) {
+        console.warn("Could not fetch user profile:", err);
       }
+
+      // Redirect to homepage
+      router.push("/");
     }
 
-    handleCallback();
+    finishLogin();
   }, [router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center text-white">
-      <p>Finishing login...</p>
+      <p>Logging you in securely...</p>
     </div>
   );
 }
