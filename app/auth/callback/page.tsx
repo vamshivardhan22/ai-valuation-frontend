@@ -3,53 +3,49 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-export default function GoogleCallback() {
+export default function AuthCallbackPage() {
   const router = useRouter();
 
   useEffect(() => {
-    async function finishLogin() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const token = urlParams.get("token");
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get("token");
 
-      // If no token, send back to login
+      // -----------------------------
+      // NO TOKEN → GO TO LOGIN
+      // -----------------------------
       if (!token) {
-        router.push("/login");
+        console.warn("❌ No token present in URL — redirecting to login");
+        router.replace("/login");
         return;
       }
 
-      // Store JWT
-      localStorage.setItem("token", token);
+      // -----------------------------
+      // STORE TOKEN FOR AUTH
+      // -----------------------------
+      localStorage.setItem("auth_token", token);
 
-      // OPTIONAL: fetch user profile
-      try {
-        const API =
-          process.env.NEXT_PUBLIC_BACKEND_URL ||
-          "https://ai-valuation-backend-1.onrender.com";
+      // OPTIONAL:
+      // If old tokens remain, clear them
+      localStorage.removeItem("user"); 
 
-        const res = await fetch(`${API}/auth/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (res.ok) {
-          const user = await res.json();
-          localStorage.setItem("user", JSON.stringify(user));
-        }
-      } catch (err) {
-        console.warn("Could not fetch user profile:", err);
-      }
-
-      // Redirect to homepage
-      router.push("/");
+      console.log("✅ Token stored, redirecting to dashboard...");
+      
+      // -----------------------------
+      // SEND USER TO MAIN DASHBOARD
+      // -----------------------------
+      router.replace("/dashboard/house-price");
+    } catch (err) {
+      console.error("Callback Processing Failed:", err);
+      router.replace("/login");
     }
-
-    finishLogin();
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center text-white">
-      <p>Logging you in securely...</p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0A0F2C] via-[#0D1B3D] to-[#281A63] text-white">
+      <p className="text-lg animate-pulse">
+        Authenticating... please wait 🚀
+      </p>
     </div>
   );
 }

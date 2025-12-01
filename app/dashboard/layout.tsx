@@ -14,41 +14,35 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     try {
-      const raw = localStorage.getItem("sidebar_collapsed");
-      return raw === "1";
+      return localStorage.getItem("sidebar_collapsed") === "1";
     } catch {
       return false;
     }
   });
 
   // --------------------------------------------------
-  // 🔹 STEP 1: Capture Google Login Token From URL
+  // 👇 AUTH GUARD (Only job: ensure token exists)
   // --------------------------------------------------
   useEffect(() => {
-    const url = new URL(window.location.href);
-    const token = url.searchParams.get("token");
+    if (typeof window === "undefined") return;
 
-    if (token) {
-      localStorage.setItem("auth_token", token);
-      router.replace("/dashboard/house-price");
-    }
-  }, []);
-
-  // --------------------------------------------------
-  // 🔹 STEP 2: Protect Dashboard Routes
-  // --------------------------------------------------
-  useEffect(() => {
     const token = localStorage.getItem("auth_token");
 
-    // allow login page to load
-    if (!token && pathname !== "/login") {
+    // Allow public pages:
+    const isPublic =
+      pathname.startsWith("/login") ||
+      pathname.startsWith("/auth");
+
+    if (!token && !isPublic) {
       router.replace("/login");
     } else {
       setLoading(false);
     }
   }, [pathname, router]);
 
-  // persist collapsed sidebar state
+  // --------------------------------------------------
+  // Persist sidebar state
+  // --------------------------------------------------
   useEffect(() => {
     try {
       localStorage.setItem("sidebar_collapsed", collapsed ? "1" : "0");
@@ -56,27 +50,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [collapsed]);
 
   // --------------------------------------------------
-  // 🔹 LOADING SCREEN
+  // LOADING SCREEN
   // --------------------------------------------------
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0A0F2C] via-[#0D1B3D] to-[#281A63] text-white">
         <div className="text-center">
-          <div className="mb-4">Loading…</div>
-          <div className="text-gray-300">Checking authentication...</div>
+          <div className="text-lg font-semibold mb-2">
+            Loading dashboard…
+          </div>
+          <div className="text-gray-300 text-sm">
+            Verifying authentication
+          </div>
         </div>
       </div>
     );
   }
 
   // --------------------------------------------------
-  // 🔹 MAIN DASHBOARD LAYOUT
+  // MAIN DASHBOARD UI
   // --------------------------------------------------
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0A0F2C] via-[#0D1B3D] to-[#281A63] text-white flex">
-      
+
       {/* Sidebar (Desktop) */}
-      <div className={`hidden md:block ${collapsed ? "w-16" : "w-72"}`}>
+      <div className={`hidden md:block transition-all duration-200 ${collapsed ? "w-16" : "w-72"}`}>
         <Sidebar collapsed={collapsed} />
       </div>
 
@@ -86,13 +84,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           drawerOpen ? "translate-x-0" : "-translate-x-full"
         } transition-transform`}
       >
-        <div className="absolute inset-0 bg-black/50" onClick={() => setDrawerOpen(false)} />
+        {/* Overlay */}
+        <div
+          className="absolute inset-0 bg-black/50"
+          onClick={() => setDrawerOpen(false)}
+        />
+
+        {/* Drawer panel */}
         <div className="relative w-72 min-h-screen bg-black/40 p-4">
-          <Sidebar collapsed={false} onCloseDrawer={() => setDrawerOpen(false)} />
+          <Sidebar
+            collapsed={false}
+            onCloseDrawer={() => setDrawerOpen(false)}
+          />
         </div>
       </div>
 
-      {/* Main Content */}
+      {/* MAIN CONTENT */}
       <main className="flex-1 p-6 md:p-8 overflow-y-auto">
         <Topbar
           collapsed={collapsed}
@@ -100,7 +107,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           onToggleDrawer={() => setDrawerOpen((s) => !s)}
         />
 
-        <div className={`transition-all duration-200 ${collapsed ? "ml-0 md:ml-4" : "ml-0 md:ml-6"}`}>
+        <div className={`${collapsed ? "ml-0 md:ml-4" : "ml-0 md:ml-6"} transition-all duration-200`}>
           <div className="max-w-7xl mx-auto">{children}</div>
         </div>
       </main>
