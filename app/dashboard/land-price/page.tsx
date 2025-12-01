@@ -18,7 +18,9 @@ export default function LandPrice() {
   const [roadWidth, setRoadWidth] = useState("");
   const [cornerPlot, setCornerPlot] = useState("No");
 
-  const [latlng, setLatlng] = useState<{ lat: number; lng: number } | null>(null);
+  const [latlng, setLatlng] = useState<{ lat: number; lng: number } | null>(
+    null
+  );
   const mapRef = useRef<HTMLDivElement | null>(null);
   const leafletMapRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
@@ -35,9 +37,11 @@ export default function LandPrice() {
         const L = await import("leaflet");
 
         L.Icon.Default.mergeOptions({
-          iconRetinaUrl: (await import("leaflet/dist/images/marker-icon-2x.png")).default,
+          iconRetinaUrl: (await import("leaflet/dist/images/marker-icon-2x.png"))
+            .default,
           iconUrl: (await import("leaflet/dist/images/marker-icon.png")).default,
-          shadowUrl: (await import("leaflet/dist/images/marker-shadow.png")).default,
+          shadowUrl: (await import("leaflet/dist/images/marker-shadow.png"))
+            .default,
         });
 
         if (!mapRef.current) return;
@@ -69,7 +73,11 @@ export default function LandPrice() {
   }, []);
 
   const useMyLocation = () => {
-    if (!navigator.geolocation) return alert("Geolocation not supported.");
+    if (!navigator.geolocation) {
+      alert("Geolocation not supported.");
+      return;
+    }
+
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const lat = pos.coords.latitude;
@@ -80,7 +88,9 @@ export default function LandPrice() {
           leafletMapRef.current.setView([lat, lng], 15);
           const L = (window as any).L;
           if (markerRef.current) markerRef.current.setLatLng([lat, lng]);
-          else markerRef.current = L.marker([lat, lng]).addTo(leafletMapRef.current);
+          else markerRef.current = L.marker([lat, lng]).addTo(
+            leafletMapRef.current
+          );
         }
       },
       (err) => alert(err.message)
@@ -152,7 +162,10 @@ export default function LandPrice() {
       "https://ai-valuation-backend-1.onrender.com";
 
     try {
-      const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("auth_token")
+          : null;
 
       const res = await fetch(`${API_BASE}/predict/land-price`, {
         method: "POST",

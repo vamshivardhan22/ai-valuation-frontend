@@ -20,6 +20,7 @@ const AMENITIES = [
 ];
 
 export default function HouseRent() {
+  // Form state
   const [area, setArea] = useState("");
   const [bedrooms, setBedrooms] = useState("");
   const [bathrooms, setBathrooms] = useState("");
@@ -30,8 +31,12 @@ export default function HouseRent() {
   const [floor, setFloor] = useState("");
   const [parking, setParking] = useState("Yes");
 
-  const [selectedAmenities, setSelectedAmenities] = useState<Record<string, boolean>>({});
-  const [latlng, setLatlng] = useState<{ lat: number; lng: number } | null>(null);
+  const [selectedAmenities, setSelectedAmenities] = useState<
+    Record<string, boolean>
+  >({});
+  const [latlng, setLatlng] = useState<{ lat: number; lng: number } | null>(
+    null
+  );
   const mapRef = useRef<HTMLDivElement | null>(null);
   const leafletMapRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
@@ -56,9 +61,11 @@ export default function HouseRent() {
         const L = await import("leaflet");
 
         L.Icon.Default.mergeOptions({
-          iconRetinaUrl: (await import("leaflet/dist/images/marker-icon-2x.png")).default,
+          iconRetinaUrl: (await import("leaflet/dist/images/marker-icon-2x.png"))
+            .default,
           iconUrl: (await import("leaflet/dist/images/marker-icon.png")).default,
-          shadowUrl: (await import("leaflet/dist/images/marker-shadow.png")).default,
+          shadowUrl: (await import("leaflet/dist/images/marker-shadow.png"))
+            .default,
         });
 
         if (!mapRef.current) return;
@@ -95,7 +102,8 @@ export default function HouseRent() {
   }, []);
 
   const useMyLocation = () => {
-    if (!navigator.geolocation) return alert("Geolocation not supported.");
+    if (!navigator.geolocation)
+      return alert("Geolocation not supported.");
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -176,10 +184,12 @@ export default function HouseRent() {
       locality,
       floor: floor ? Number(floor) : null,
       parking,
-      amenities: Object.keys(selectedAmenities).filter((k) => selectedAmenities[k]),
+      amenities: Object.keys(selectedAmenities).filter(
+        (k) => selectedAmenities[k]
+      ),
       lat: latlng.lat,
       lng: latlng.lng,
-      // images: imagePreviews, // enable when backend accepts images
+      // images: imagePreviews, // enable in backend later
     };
 
     const API_BASE =
@@ -188,7 +198,10 @@ export default function HouseRent() {
       "https://ai-valuation-backend-1.onrender.com";
 
     try {
-      const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("auth_token")
+          : null;
 
       const res = await fetch(`${API_BASE}/predict/house-rent`, {
         method: "POST",
@@ -278,7 +291,7 @@ export default function HouseRent() {
               </select>
             </div>
 
-            {/* Location */}
+            {/* Location fields */}
             <div className="grid grid-cols-2 gap-4">
               <input
                 className="input"
@@ -340,7 +353,6 @@ export default function HouseRent() {
                 ref={mapRef}
                 className="h-56 rounded-xl overflow-hidden border border-white/10 mb-2"
               />
-
               <button
                 type="button"
                 onClick={useMyLocation}
@@ -436,7 +448,9 @@ export default function HouseRent() {
                 </div>
 
                 <div>
-                  <div className="text-sm text-gray-300 mb-1">Rent Range</div>
+                  <div className="text-sm text-gray-300 mb-1">
+                    Rent Range
+                  </div>
                   <div className="flex justify-between text-xs text-gray-400">
                     <span>{fmt(result.min_rent)}</span>
                     <span>{fmt(result.max_rent)}</span>

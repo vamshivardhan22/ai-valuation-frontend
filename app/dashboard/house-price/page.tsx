@@ -20,7 +20,7 @@ const AMENITIES = [
 ];
 
 export default function HousePrice() {
-  // form
+  // ---------------- Form state ----------------
   const [area, setArea] = useState("");
   const [bedrooms, setBedrooms] = useState("");
   const [bathrooms, setBathrooms] = useState("");
@@ -31,45 +31,54 @@ export default function HousePrice() {
   const [city, setCity] = useState("");
   const [locality, setLocality] = useState("");
 
-  // amenities & map
-  const [selectedAmenities, setSelectedAmenities] = useState<Record<string, boolean>>({});
-  const [latlng, setLatlng] = useState<{ lat: number; lng: number } | null>(null);
+  // ---------------- Map & amenities ----------------
+  const [selectedAmenities, setSelectedAmenities] = useState<
+    Record<string, boolean>
+  >({});
+  const [latlng, setLatlng] = useState<{ lat: number; lng: number } | null>(
+    null
+  );
   const mapRef = useRef<HTMLDivElement | null>(null);
   const leafletMapRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
 
-  // images (gallery + camera)
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]); // data URLs for UI preview
+  // ---------------- Images (gallery + camera) ----------------
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
-  // result
+  // ---------------- Result state ----------------
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ResultType | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // init amenities
+  // Init amenities
   useEffect(() => {
     const initial: Record<string, boolean> = {};
     AMENITIES.forEach((a) => (initial[a.id] = false));
     setSelectedAmenities(initial);
   }, []);
 
-  // Leaflet init (client-only)
+  // Leaflet map init
   useEffect(() => {
     let mounted = true;
+
     async function initMap() {
       try {
         const L = await import("leaflet");
 
-        // marker icons
         L.Icon.Default.mergeOptions({
-          iconRetinaUrl: (await import("leaflet/dist/images/marker-icon-2x.png")).default,
+          iconRetinaUrl: (await import("leaflet/dist/images/marker-icon-2x.png"))
+            .default,
           iconUrl: (await import("leaflet/dist/images/marker-icon.png")).default,
-          shadowUrl: (await import("leaflet/dist/images/marker-shadow.png")).default,
+          shadowUrl: (await import("leaflet/dist/images/marker-shadow.png"))
+            .default,
         });
 
         if (!mounted || !mapRef.current) return;
 
-        const map = L.map(mapRef.current, { center: [20.5937, 78.9629], zoom: 6 });
+        const map = L.map(mapRef.current, {
+          center: [20.5937, 78.9629],
+          zoom: 6,
+        });
         leafletMapRef.current = map;
 
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -87,6 +96,7 @@ export default function HousePrice() {
         console.error("Leaflet load error:", err);
       }
     }
+
     initMap();
 
     return () => {
@@ -94,27 +104,39 @@ export default function HousePrice() {
       try {
         leafletMapRef.current?.remove();
         leafletMapRef.current = null;
-      } catch {}
+      } catch {
+        // ignore
+      }
     };
   }, []);
 
   const useMyLocation = () => {
-    if (!navigator.geolocation) return alert("Geolocation not supported.");
+    if (!navigator.geolocation) {
+      alert("Geolocation not supported.");
+      return;
+    }
+
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         setLatlng({ lat, lng });
+
         try {
           if (leafletMapRef.current) {
             leafletMapRef.current.setView([lat, lng], 14);
-            if (markerRef.current) markerRef.current.setLatLng([lat, lng]);
-            else {
+            if (markerRef.current) {
+              markerRef.current.setLatLng([lat, lng]);
+            } else {
               const L = (window as any).L;
-              markerRef.current = L.marker([lat, lng]).addTo(leafletMapRef.current);
+              markerRef.current = L.marker([lat, lng]).addTo(
+                leafletMapRef.current
+              );
             }
           }
-        } catch {}
+        } catch {
+          // ignore
+        }
       },
       (err) => alert("Unable to get location: " + err.message)
     );
@@ -128,7 +150,7 @@ export default function HousePrice() {
     setError(null);
   };
 
-  // Image selection (gallery)
+  // ------------- Images: gallery upload -------------
   const handleImageFiles = (files: FileList | null) => {
     if (!files) return;
     const selected = Array.from(files).slice(0, 5); // max 5
@@ -140,12 +162,13 @@ export default function HousePrice() {
           reader.readAsDataURL(file);
         })
     );
+
     Promise.all(readers).then((urls) => {
       setImagePreviews((prev) => [...prev, ...urls]);
     });
   };
 
-  // Camera (takes single photo, adds to previews)
+  // ------------- Images: camera capture -------------
   const handleCameraCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -157,6 +180,7 @@ export default function HousePrice() {
     reader.readAsDataURL(file);
   };
 
+  // ------------- Submit handler -------------
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     resetResult();
@@ -165,6 +189,7 @@ export default function HousePrice() {
       setError("Please fill area, bedrooms, bathrooms, city and locality.");
       return;
     }
+
     if (!latlng) {
       setError("Please pick a location on the map (or use 'Use My Location').");
       return;
@@ -173,7 +198,6 @@ export default function HousePrice() {
     setLoading(true);
     setError(null);
 
-    // prepare payload
     const payload = {
       area: Number(area),
       bedrooms: Number(bedrooms),
@@ -184,10 +208,12 @@ export default function HousePrice() {
       build_year: buildYear ? Number(buildYear) : null,
       city,
       locality,
-      amenities: Object.keys(selectedAmenities).filter((k) => selectedAmenities[k]),
+      amenities: Object.keys(selectedAmenities).filter(
+        (k) => selectedAmenities[k]
+      ),
       lat: latlng.lat,
       lng: latlng.lng,
-      // images: imagePreviews, // ⬅️ enable later when backend supports it
+      // images: imagePreviews, // enable when backend supports
     };
 
     const API_BASE =
@@ -196,7 +222,10 @@ export default function HousePrice() {
       "https://ai-valuation-backend-1.onrender.com";
 
     try {
-      const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("auth_token")
+          : null;
 
       const res = await fetch(`${API_BASE}/predict/house-price`, {
         method: "POST",
@@ -238,6 +267,7 @@ export default function HousePrice() {
           maximumFractionDigits: 0,
         }).format(n);
 
+  // ================== UI ==================
   return (
     <div className="p-6">
       <h1 className="text-3xl font-bold mb-6">Residential Price Estimator</h1>
@@ -246,6 +276,7 @@ export default function HousePrice() {
         {/* LEFT: Form */}
         <div className="bg-white/5 p-6 rounded-2xl shadow-lg backdrop-blur-xl">
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Basic details */}
             <div className="grid grid-cols-2 gap-4">
               <input
                 type="number"
@@ -304,6 +335,7 @@ export default function HousePrice() {
               </select>
             </div>
 
+            {/* Location text fields */}
             <div className="grid grid-cols-2 gap-4">
               <input
                 type="number"
@@ -475,10 +507,11 @@ export default function HousePrice() {
                   </div>
                 </div>
 
-                {/* range bar */}
+                {/* Range bar */}
                 <div>
                   <div className="text-sm text-gray-300 mb-2">Price range</div>
                   <div className="w-full bg-white/6 rounded-full h-4 relative overflow-hidden">
+                    {/* min→max bar */}
                     <div
                       className="absolute left-0 top-0 bottom-0 bg-emerald-500/40"
                       style={{
@@ -487,17 +520,18 @@ export default function HousePrice() {
                           result.max_price != null
                             ? `${Math.min(
                                 100,
-                                (100 *
+                                100 *
                                   ((result.max_price -
                                     (result.min_price ?? 0)) /
                                     Math.max(
                                       1,
                                       result.max_price ?? 1
-                                    ))) %
-                              100}`
+                                    ))
+                              )}%`
                             : "40%",
                       }}
                     />
+                    {/* predicted marker */}
                     <div
                       style={{
                         position: "absolute",
