@@ -1,58 +1,101 @@
 @import "leaflet/dist/leaflet.css";
-
-/* Import Tailwind */
 @import "tailwindcss";
 
-/* Light Theme Variables */
+/* ========= COLOR SYSTEM ========= */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a1024; /* dark royal blue canvas */
+  --foreground: #ffffff;
 }
 
-/* Tailwind Theme Extension */
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-/* Dark Theme Support */
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #ffffff;
+    --foreground: #171717;
   }
 }
 
-/* Global Body Styles */
+/* ========= GLOBAL RESET ========= */
+
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
   margin: 0;
   padding: 0;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
-/* ========= CUSTOM UI COMPONENTS ========= */
+/* ========= BASE UI ELEMENTS ========= */
 
-/* Input Field Design */
 .input {
-  @apply w-full p-3 border border-gray-300 rounded-lg mb-3 bg-white text-black;
+  @apply w-full rounded-xl px-3 py-2 border bg-black/30 text-white
+    border-white/20 placeholder-gray-400
+    outline-none transition;
 }
 
-/* Dark mode fix for inputs */
-@media (prefers-color-scheme: dark) {
+.input:focus {
+  @apply border-white/40;
+}
+
+/* LIGHT mode */
+@media (prefers-color-scheme: light) {
   .input {
-    @apply bg-neutral-900 text-white border-neutral-700;
+    @apply bg-white text-black border-gray-300;
   }
 }
 
 /* Buttons */
-.btn {
-  @apply px-5 py-3 bg-black text-white font-semibold rounded-lg cursor-pointer transition;
+.btn-primary {
+  @apply bg-emerald-500 text-black font-semibold px-4 py-2 rounded-lg
+    hover:bg-emerald-600 transition;
 }
 
+.btn-secondary {
+  @apply bg-white/10 text-white px-3 py-2 rounded-lg border border-white/20
+    hover:bg-white/20 transition;
+}
+
+.btn-danger {
+  @apply bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition;
+}
+
+/* Generic button */
+.btn {
+  @apply bg-neutral-800 text-white px-4 py-2 rounded-lg transition;
+}
 .btn:hover {
   @apply opacity-80;
+}
+
+/* ========= DASHBOARD LAYOUT UTILITIES ========= */
+
+.page-container {
+  @apply min-h-screen bg-gradient-to-br from-[#0A0F2C] via-[#0D1B3D] to-[#281A63] text-white;
+}
+
+.card {
+  @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl p-6;
+}
+
+/* scroll fix for dashboard */
+main {
+  @apply overflow-y-auto;
+}
+
+/* leaf map */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+}
+
+/* scrollbar style */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
 }
