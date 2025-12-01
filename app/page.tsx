@@ -1,19 +1,13 @@
 "use client";
-
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import HomePage from "./homepage";
+import { useEffect } from "react";
 
-export default function Index() {
+export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("auth_token");
-
-    if (!token) {
-      router.replace("/login");
-    }
+    router.replace("/dashboard/house-price");
   }, [router]);
 
-  return <HomePage />;
+  return null;
 }
