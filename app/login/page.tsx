@@ -2,7 +2,7 @@
 
 export default function LoginPage() {
   const GOOGLE_URL =
-    `${process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://ai-valuation-backend-1.onrender.com"}/auth/google`;
+    `${process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://ai-valuation-backend-1.onrender.com"}/auth/google/login`;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0A0F2C] via-[#0D1B3D] to-[#281A63] text-white px-4">
